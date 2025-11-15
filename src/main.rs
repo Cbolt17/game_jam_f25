@@ -7,6 +7,6 @@ pub mod grid;
 
 fn main() {
     App::new()
-        .add_plugins((UiPlugin, GridPlugin))
+        .add_plugins((DefaultPlugins, UiPlugin, GridPlugin))
     .run();
 }

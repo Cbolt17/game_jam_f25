@@ -1,5 +1,5 @@
 # Ignore Cargo build output
-*/target
+/target
 
 # Ignore Cargo lock for libraries (keep it for apps)
 # Cargo.lock
