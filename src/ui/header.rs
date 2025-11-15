@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::casino::{CasinoCapacity, CasinoMoney, Suspicion};
+use crate::{casino::{CasinoCapacity, CasinoMoney, Suspicion}, ui::utils::format_money_text};
 
 const CONTAINER_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
 const CONTAINER_HEIGHT: Val = Val::Px(40.0);
@@ -122,20 +122,4 @@ pub fn update_sus_gauge(
     mut marker_node: Single<&mut Node, With<SusMarker>>
 ) {
     marker_node.left = Val::Percent((suspicion.0 - 1.0) * -100.0)
-}
-
-fn format_money_text(n: i64) -> String {
-    let s = n.to_string();
-    let mut result = String::new();
-    let mut count = 0;
-
-    for (i, c) in s.chars().rev().enumerate() {
-        if i > 0 && count % 3 == 0 {
-            result.push(',');
-        }
-        result.push(c);
-        count += 1;
-    }
-    result.push('$');
-    result.chars().rev().collect()
 }
