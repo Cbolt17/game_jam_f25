@@ -18,6 +18,5 @@ impl Plugin for UiPlugin {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d);
     create_header(commands);
 }

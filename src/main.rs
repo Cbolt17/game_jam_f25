@@ -1,14 +1,22 @@
 use bevy::prelude::*;
 
-use crate::{grid::GridPlugin, ui::UiPlugin, casino::CasinoPlugin};
+use crate::{camera::CameraPlugin, casino::CasinoPlugin, grid::GridPlugin, peeps::PeepsPlugin, ui::UiPlugin};
 
 pub mod ui;
 pub mod grid;
 pub mod peeps;
 pub mod casino;
+mod camera;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins.set(ImagePlugin::default_nearest()), UiPlugin, GridPlugin, CasinoPlugin))
+        .add_plugins((
+            DefaultPlugins.set(ImagePlugin::default_nearest()), 
+            UiPlugin, 
+            GridPlugin, 
+            PeepsPlugin,
+            CasinoPlugin,
+            CameraPlugin,
+        ))
     .run();
 }
