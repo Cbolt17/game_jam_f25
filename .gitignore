@@ -1,0 +1,25 @@
+# Ignore Cargo build output
+*/target
+
+# Ignore Cargo lock for libraries (keep it for apps)
+# Cargo.lock
+
+# OS-specific junk
+.DS_Store
+Thumbs.db
+
+# Editor/IDE files
+*.swp
+*.swo
+*.log
+.idea/
+.vscode/
+
+# Rust analyzer
+*.rustc_info.json
+
+# Backup files
+*~
+
+# Bevy generated shader caches (optional)
+.wgpu_cache/
