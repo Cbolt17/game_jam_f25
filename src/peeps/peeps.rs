@@ -1,10 +1,14 @@
 use bevy::prelude::*;
 
+use crate::{grid::{attraction::AvailableAttractions, grid::{AttractionGrid, CELL_SIZE}}, peeps::play::{GoTo, Playing}};
+
 #[derive(Resource)]
 pub struct PeepSheet(Handle<TextureAtlasLayout>);
 
 #[derive(Component)]
 pub struct Peep;
+
+const PEEP_SPEED: f32 = 40.0;
 
 impl FromWorld for PeepSheet {
     fn from_world(world: &mut World) -> Self {
@@ -53,5 +57,56 @@ pub fn make_peep_angy(sprite: &mut Sprite) {
 pub fn make_peep_happy(sprite: &mut Sprite) {
     if let Some(atlas) = &mut sprite.texture_atlas {
         atlas.index = 0;
+    }
+}
+
+pub fn peep_target(
+    peep_query: Query<Entity, (With<Peep>, Without<GoTo>, Without<Playing>)>,
+    available: Res<AvailableAttractions>,
+    mut commands: Commands,
+) {
+    for peep in peep_query.iter() {
+        if let Some(attraction) = available.random() {
+            commands.entity(peep).insert(GoTo(attraction));
+        }
+    }
+}
+
+pub fn peep_goto(
+    mut peep_query: Query<(Entity, &GoTo, &mut Transform), With<Peep>>,
+    attraction_query: Query<(Entity, &Transform), Without<Peep>>,
+    mut commands: Commands,
+    time: Res<Time>,
+) {
+    for (entity, goto, mut transform) in peep_query.iter_mut() {
+        let (a_entity, a_transform) = attraction_query.get(goto.0).unwrap().clone();
+        let goal = a_transform.translation.xy();
+        let mut location = transform.translation.xy();
+        let goal_cell = AttractionGrid::get_cell(goal);
+        let loc_cell = AttractionGrid::get_cell(location);
+        let dif = goal_cell - loc_cell;
+        //println!("{}", dif);
+        if dif.x.abs() > dif.y.abs() {
+            if dif.x != 0 {
+                location.x += (dif.x / dif.x.abs()) as f32 * PEEP_SPEED * time.delta_secs();
+            }
+        }
+        else {
+            if dif.y != 0 {
+                location.y += (dif.y / dif.y.abs()) as f32 * PEEP_SPEED * time.delta_secs();
+            }
+        }
+        if dif.x == 0 && dif.y == 0 {
+            let pos = AttractionGrid::get_coords(goal_cell) + Vec2::new(0.5 * CELL_SIZE, 0.2 * CELL_SIZE);
+            let dif = pos - location;
+            if dif.length_squared() > 0.1 * CELL_SIZE {
+                location += dif.normalize_or_zero() * PEEP_SPEED * time.delta_secs();
+            }
+            else {
+                commands.entity(entity).remove::<GoTo>();
+                //commands.entity(entity).add::<Playing>(a_entity);
+            }
+        }
+        transform.translation = location.extend(-location.y);
     }
 }

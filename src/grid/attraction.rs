@@ -1,14 +1,22 @@
 use bevy::prelude::*;
 use rand::Rng;
 
+use crate::grid::grid::{ATTRACTION_OFFSET, ATTRACTION_SIZE};
+
 #[derive(Resource)]
 pub struct AvailableAttractions(pub Vec<Entity>);
 
 impl AvailableAttractions {
-    pub fn random(&self) -> Entity {
+    pub fn new() -> Self {
+        AvailableAttractions(Vec::new())
+    }
+    pub fn random(&self) -> Option<Entity> {
         let amt = self.0.len();
+        if amt == 0 {
+            return None
+        }
         let mut random = rand::thread_rng();
-        self.0[random.gen_range(0..amt)]
+        Some(self.0[random.gen_range(0..amt)])
     }
 }
 
@@ -77,8 +85,8 @@ pub struct Attraction {
 }
 
 impl Attraction {
-    pub fn new(cash: i64, max_cap: u32, cooldown: f32, win_rate: f32, max_bet: i64, min_bet: i64) -> Self {
-        Attraction{cash, players: 0, capacity: max_cap, cooldown, win_rate, max_bet, min_bet}
+    pub fn new(cash: i64, capacity: u32, cooldown: f32, win_rate: f32, max_bet: i64, min_bet: i64) -> Self {
+        Attraction{cash, players: 0, capacity, cooldown, win_rate, max_bet, min_bet}
     }
     pub fn dup(&self) -> Self {
         Attraction::new(self.cash, self.capacity, self.cooldown, self.win_rate, self.max_bet, self.min_bet)
@@ -100,7 +108,7 @@ impl Attraction {
         self.win_rate = rate;
     }
     pub fn full(&self) -> bool {
-        self.players < self.capacity
+        self.players >= self.capacity
     }
 }
 
@@ -111,12 +119,13 @@ pub fn spawn_attraction(
     commands: &mut Commands, 
     asset_server: &Res<AssetServer>,
 ) -> Entity {
+    let position = position + ATTRACTION_OFFSET + 0.5 * ATTRACTION_SIZE;
     commands.spawn((
         Sprite {
             image: asset_server.load(attraction.get_sprite()),
             ..default()
         },
-        Transform::from_xyz(position.x, position.y, position.y),
+        Transform::from_xyz(position.x, position.y, -position.y),
         blueprints.get(*attraction)
     )).id()
 }

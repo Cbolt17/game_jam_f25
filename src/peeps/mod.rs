@@ -15,7 +15,11 @@ impl Plugin for PeepsPlugin {
         app
             .init_resource::<PeepSheet>()
             .add_systems(Startup, test)
-            .add_systems(Update, test2)
+            .add_systems(Update, (
+                test2,
+                peep_target,
+                peep_goto,
+            ))
         ;
     }
 }
