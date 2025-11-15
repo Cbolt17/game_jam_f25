@@ -1,3 +1,12 @@
+use bevy::prelude::*;
+
+use crate::{grid::GridPlugin, ui::UiPlugin};
+
+pub mod ui;
+pub mod grid;
+
 fn main() {
-    println!("Hello, world!");
+    App::new()
+        .add_plugins((UiPlugin, GridPlugin))
+    .run();
 }
