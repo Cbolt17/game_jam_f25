@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::casino::{CasinoCapacity, CasinoMoney};
+use crate::casino::{CasinoCapacity, CasinoMoney, Suspicion};
 
 const CONTAINER_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
 const CONTAINER_HEIGHT: Val = Val::Px(40.0);
@@ -9,6 +9,10 @@ const MONEY_TEXT_COLOR_INC: Color = Color::srgb(0.5, 1.0, 0.7);
 const MONEY_TEXT_COLOR_DEC: Color = Color::srgb(1.0, 0.5, 0.5);
 
 const CAPACITY_TEXT_COLOR: Color = Color::srgb(0.8, 0.8, 1.0);
+
+const GAUGE_RED: Color = Color::srgb(1.0, 0.3, 0.2);
+const GAUGE_GREEN: Color = Color::srgb(0.4, 1.0, 0.2);
+const GAUGE_BORDER: Color = Color::srgb(0.2, 0.2, 0.3);
 
 #[derive(Resource)]
 pub struct MoneyDisplay {
@@ -22,7 +26,10 @@ pub struct MoneyText;
 #[derive(Component)]
 pub struct CapacityText;
 
-pub fn create_header(mut commands: Commands) {
+#[derive(Component)]
+pub struct SusMarker;
+
+pub fn create_header(mut commands: Commands, asset_server: Res<AssetServer>) {
     let container = (
         BackgroundColor(CONTAINER_COLOR),
         Node {
@@ -53,7 +60,36 @@ pub fn create_header(mut commands: Commands) {
         TextColor(CAPACITY_TEXT_COLOR),
         CapacityText
     );
-    commands.spawn((container, children![money_text, capacity_text]));
+    let sus_gauge = (
+        Node {
+            position_type: PositionType::Absolute,
+            left: Val::Percent(35.0),
+            width: Val::Percent(30.0),
+            height: Val::Percent(60.0),
+            border: UiRect::all(Val::Px(2.0)),
+            ..default()
+        },
+        BorderRadius::all(Val::Px(16.0)),
+        BorderColor::all(GAUGE_BORDER),
+        BackgroundGradient::from(LinearGradient{
+            color_space: InterpolationColorSpace::Oklaba,
+            angle: std::f32::consts::PI * 0.5,
+            stops: vec![
+                GAUGE_RED.into(),
+                GAUGE_GREEN.into()
+            ]
+        })
+    );
+    let sus_marker = (
+        Node {
+            left: Val::Percent(50.0),
+            top: Val::Px(6.0),
+            ..default()
+        },
+        ImageNode::new(asset_server.load("GaugeMarker.png")),
+        SusMarker
+    );
+    commands.spawn((container, children![money_text, (sus_gauge, children![sus_marker]), capacity_text]));
 }
 
 pub fn update_money_text(
@@ -79,6 +115,13 @@ pub fn update_capacity_text(
     mut capacity_text: Single<&mut Text, With<CapacityText>>
 ) {
     ***capacity_text = format!("Peeps: {}/{}", capacity.current, capacity.max);
+}
+
+pub fn update_sus_gauge(
+    suspicion: Res<Suspicion>,
+    mut marker_node: Single<&mut Node, With<SusMarker>>
+) {
+    marker_node.left = Val::Percent((suspicion.0 - 1.0) * -100.0)
 }
 
 fn format_money_text(n: i64) -> String {
