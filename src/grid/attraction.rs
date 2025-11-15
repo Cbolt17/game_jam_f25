@@ -58,9 +58,9 @@ impl AttractionBlueprints {
     pub fn new() -> Self {
         AttractionBlueprints { 
             blueprints: vec![
-                Attraction::new(10000, 10, 10.0, 0.51,  100, 5), // Roulette
+                Attraction::new(5000, 10, 10.0, 0.51,  100, 5), // Roulette
                 Attraction::new(10000, 5,  5.0,  0.55,  200, 5),  // BlackJack
-                Attraction::new(0,     8,  30.0, 100.0, 20,  5),  // Bar
+                Attraction::new(19167, 8,  30.0, 100.0, 20,  5),  // Bar
             ]
         }
     }
@@ -75,7 +75,7 @@ impl AttractionBlueprints {
 
 #[derive(Component)]
 pub struct Attraction {
-    cash: i64,
+    pub cost: i64,
     players: u32,
     capacity: u32,
     cooldown: f32,
@@ -85,11 +85,11 @@ pub struct Attraction {
 }
 
 impl Attraction {
-    pub fn new(cash: i64, capacity: u32, cooldown: f32, win_rate: f32, max_bet: i64, min_bet: i64) -> Self {
-        Attraction{cash, players: 0, capacity, cooldown, win_rate, max_bet, min_bet}
+    pub fn new(cash: i64, max_cap: u32, cooldown: f32, win_rate: f32, max_bet: i64, min_bet: i64) -> Self {
+        Attraction{cost: cash, players: 0, capacity: max_cap, cooldown, win_rate, max_bet, min_bet}
     }
     pub fn dup(&self) -> Self {
-        Attraction::new(self.cash, self.capacity, self.cooldown, self.win_rate, self.max_bet, self.min_bet)
+        Attraction::new(self.cost, self.capacity, self.cooldown, self.win_rate, self.max_bet, self.min_bet)
     }
     pub fn add_player(&mut self) -> bool {
         if self.players < self.capacity {
