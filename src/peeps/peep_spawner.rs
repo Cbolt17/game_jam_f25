@@ -3,8 +3,12 @@ use rand::Rng;
 
 use crate::{grid::door::Door, peeps::{peeps::{Peep, PeepSheet}, profile::*}};
 
+pub const ACCEL_INC: f32 = 20.0;
+pub const ACCEL_RATE: f32 = 0.95;
+
 #[derive(Resource)]
 pub struct PeepSpawner {
+    accel: Timer,
     rate: f32,
     countdown: f32,
 }
@@ -14,7 +18,7 @@ pub struct SpawnPeepEvent;
 
 impl PeepSpawner {
     pub fn new(rate: f32, countdown: f32) -> Self {
-        PeepSpawner{rate, countdown}
+        PeepSpawner{accel: Timer::from_seconds(ACCEL_INC, TimerMode::Repeating), rate, countdown}
     }
     pub fn cycle_back(&mut self) {
         self.countdown += self.rate;
@@ -62,6 +66,9 @@ pub fn peep_spawner_timer(
     time: Res<Time>,
     mut commands: Commands,
 ) {
+    if spawner.accel.tick(time.delta()).is_finished() {
+        spawner.rate *= ACCEL_RATE;
+    }
     spawner.countdown -= time.delta_secs();
     while spawner.countdown < 0.0 {
         spawner.cycle_back();

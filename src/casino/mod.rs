@@ -53,8 +53,8 @@ fn reset(
     mut suspicion: ResMut<Suspicion>,
     mut time_limit: ResMut<TimeLimit>
 ) {
-    casino.0 = 20000;
+    casino.0 = START_CASH;
     peep_count.0 = 0;
-    suspicion.0 = 0.05;
-    time_limit.0 = 30.0;
+    suspicion.0 = 0.00;
+    time_limit.0 = TIME_LIMIT;
 }

@@ -2,6 +2,9 @@ use bevy::prelude::*;
 
 use crate::{casino::Suspicion, grid::door::Door, peeps::{drunk::{Die, PassOut}, peeps::Peep, play::{GoTo, Location}, server::CarriedPeep}};
 
+pub const ACCEL_INC: f32 = 30.0;
+pub const ACCEL_RATE: f32 = 0.95;
+
 #[derive(Component)]
 #[relationship(relationship_target = MonitoredBy)]
 pub struct Monitoring(pub Entity);
@@ -21,13 +24,14 @@ pub struct SpawnInspectorEvent;
 
 #[derive(Resource)]
 pub struct InspectorSpawner {
+    accel: Timer,
     rate: f32,
     countdown: f32,
 }
 
 impl InspectorSpawner {
     pub fn new(rate: f32, countdown: f32) -> Self {
-        InspectorSpawner{rate, countdown}
+        InspectorSpawner{accel: Timer::from_seconds(ACCEL_INC, TimerMode::Repeating), rate, countdown}
     }
     pub fn cycle_back(&mut self) {
         self.countdown += self.rate;
@@ -70,6 +74,9 @@ pub fn inspector_spawner_timer(
     time: Res<Time>,
     mut commands: Commands,
 ) {
+    if spawner.accel.tick(time.delta()).is_finished() {
+        spawner.rate *= ACCEL_RATE;
+    }
     spawner.countdown -= time.delta_secs();
     while spawner.countdown < 0.0 {
         spawner.cycle_back();

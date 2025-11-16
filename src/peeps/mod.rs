@@ -8,7 +8,7 @@ use crate::peeps::peep_spawner::{PeepSpawner, SpawnPeepEvent, peep_spawner_timer
 use crate::peeps::peeps::*;
 use crate::peeps::peep_spawner::peep_spawner;
 use crate::peeps::drunk::*;
-use crate::peeps::server::{SpawnServerEvent, server_target, server_spawner};
+use crate::peeps::server::{SpawnServerEvent, server_spawner, server_target, start_wandering};
 
 pub mod peeps;
 pub mod play;
@@ -39,6 +39,7 @@ impl Plugin for PeepsPlugin {
                 peep_spawner_timer,
                 inspector_spawner_timer,
                 pass_out_die,
+                start_wandering,
 
             ))
             .add_observer(bet_result)
@@ -47,6 +48,7 @@ impl Plugin for PeepsPlugin {
             .add_observer(peep_reach_door)
             .add_observer(server_reach_door)
             .add_observer(server_reach_peep)
+            .add_observer(server_wander)
             .add_observer(add_drunk_timer)
             .add_observer(peep_passout)
             .add_observer(inspector_spawner)

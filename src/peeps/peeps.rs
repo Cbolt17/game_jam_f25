@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{grid::{attraction::{Attraction, AvailableAttractions}, door::Door, grid::{AttractionGrid, CELL_SIZE}, play_attraction::BetResult}, peeps::{drunk::{Die, PassOut}, effects::Despawner, inspector::{Inspector, Monitoring}, play::{GoTo, GoalReached, Playing}, profile::{MoneyProfile, NoPlayRecord}, server::{Carrying, CarryingIntent, Server}}};
+use crate::{grid::{attraction::{Attraction, AvailableAttractions}, door::Door, grid::{AttractionGrid, CELL_SIZE}, play_attraction::BetResult}, peeps::{drunk::{Die, PassOut}, effects::Despawner, inspector::{Inspector, Monitoring}, play::{GoTo, GoalReached, Playing}, profile::{MoneyProfile, NoPlayRecord}, server::{Carrying, CarryingIntent, Server, Wandering}}};
 
 #[derive(Resource)]
 pub struct PeepSheet(pub Handle<TextureAtlasLayout>);
@@ -174,6 +174,18 @@ pub fn server_reach_peep(
             server.add_child(peep_entity);
             transform.translation = Vec3::new(0.0, 8.0, -0.01);
         }
+    }
+}
+
+pub fn server_wander(
+    reached: On<GoalReached>,
+    server_query: Query<Entity, (With<Server>, With<Wandering>)>,
+    mut commands: Commands
+) {
+    if let Ok(entity) = server_query.get(reached.peep) {
+        let mut entity = commands.entity(entity);
+        entity.remove::<GoTo>();
+        entity.remove::<Wandering>();
     }
 }
 
