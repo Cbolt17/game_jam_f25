@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{casino::{CasinoMoney, PeepCount, Suspicion}, peeps::peeps::Peep, ui::utils::format_money_text};
+use crate::{casino::{CasinoMoney, Suspicion}, peeps::peeps::Peep, ui::{title::{UiContainer}, utils::format_money_text}};
 
 const CONTAINER_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
 const CONTAINER_HEIGHT: Val = Val::Px(40.0);
@@ -34,12 +34,14 @@ pub fn create_header(mut commands: Commands, asset_server: Res<AssetServer>) {
     let container = (
         BackgroundColor(CONTAINER_COLOR),
         Node {
-        width: Val::Percent(100.0),
-        height: CONTAINER_HEIGHT,
-        flex_direction: FlexDirection::Row,
-        align_items: AlignItems::Center,
-        ..default()
-        }
+            width: Val::Percent(100.0),
+            height: CONTAINER_HEIGHT,
+            flex_direction: FlexDirection::Row,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        Visibility::Hidden,
+        UiContainer
     );
     let money_text = (
         Node {

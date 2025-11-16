@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{casino::{CasinoMoney, Suspicion, TimeLimit}, game::GameState};
+use crate::{casino::{CasinoMoney, Suspicion, TimeLimit}, game::GameState, ui::title::{UiContainer, toggle_ui_visibility}};
 
 const CASH_TO_WIN: i64 = 1000000;
 
@@ -21,25 +21,34 @@ pub fn end_check(
     mut next_state: ResMut<NextState<GameState>>,
     mut time: ResMut<Time<Virtual>>,
     mut commands: Commands,
+    ui_query: Query<&mut Visibility, With<UiContainer>>
 ) {
+    let mut gameover = false;
     if money.0 > CASH_TO_WIN {
         time.pause();
         *next_state = NextState::Pending(GameState::Paused);
         commands.trigger(YouWonEvent);
+        gameover = true;
     }
     if money.0 < 0 {
         time.pause();
         *next_state = NextState::Pending(GameState::Paused);
         commands.trigger(YouLoseEvent::BankRupt);
+        gameover = true;
     }
     if sus.0 >= 1.0 {
         time.pause();
         *next_state = NextState::Pending(GameState::Paused);
         commands.trigger(YouLoseEvent::Arrested);
+        gameover = true;
     }
     if limit.0 <= 0.0 {
         time.pause();
         *next_state = NextState::Pending(GameState::Paused);
         commands.trigger(YouLoseEvent::OutOfTime);
+        gameover = true;
+    }
+    if gameover {
+        toggle_ui_visibility(ui_query);
     }
 }
