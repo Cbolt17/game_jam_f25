@@ -9,12 +9,18 @@ pub struct PeepSpawner {
     countdown: f32,
 }
 
+#[derive(Event)]
+pub struct SpawnPeepEvent;
+
 impl PeepSpawner {
     pub fn new(rate: f32, countdown: f32) -> Self {
         PeepSpawner{rate, countdown}
     }
     pub fn cycle_back(&mut self) {
         self.countdown += self.rate;
+    }
+    pub fn reset(&mut self) {
+        self.countdown = self.rate;
     }
 }
 
@@ -51,17 +57,24 @@ pub fn spawn_peep(
     ));
 }
 
-pub fn peep_spawner(
+pub fn peep_spawner_timer(
     mut spawner: ResMut<PeepSpawner>,
-    peep_sheet: Res<PeepSheet>,
-    door: Single<&Transform, With<Door>>,
     time: Res<Time>,
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
 ) {
     spawner.countdown -= time.delta_secs();
     while spawner.countdown < 0.0 {
         spawner.cycle_back();
-        spawn_peep(door.translation.xy(), &mut commands, &asset_server, &peep_sheet);
+        commands.trigger(SpawnPeepEvent);
     }
+}
+
+pub fn peep_spawner(
+    _event: On<SpawnPeepEvent>,
+    door: Single<&Transform, With<Door>>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    peep_sheet: Res<PeepSheet>,
+) {
+    spawn_peep(door.translation.xy(), &mut commands, &asset_server, &peep_sheet);
 }

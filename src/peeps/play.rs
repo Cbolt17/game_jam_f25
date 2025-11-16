@@ -25,6 +25,12 @@ pub struct GoTo(pub Entity);
 #[relationship_target(relationship = GoTo)]
 pub struct Location(Vec<Entity>);
 
+impl Location {
+    pub fn entities(&self) -> Vec<Entity> {
+        self.0.clone()
+    }
+}
+
 #[derive(EntityEvent)]
 pub struct GoalReached {
     #[event_target]
