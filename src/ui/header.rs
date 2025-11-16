@@ -17,7 +17,8 @@ const GAUGE_BORDER: Color = Color::srgb(0.2, 0.2, 0.3);
 #[derive(Resource)]
 pub struct MoneyDisplay {
     pub current: i64,
-    pub change: i64
+    pub change: i64,
+    pub was_changed: bool
 }
 
 #[derive(Component)]
@@ -98,14 +99,23 @@ pub fn update_money_text(
     mut money_text: Single<&mut Text, With<MoneyText>>,
     mut text_color: Single<&mut TextColor, With<MoneyText>>
 ) {
+    let diff = money.0 - money_display.current;
     if money.0 > money_display.current {
+        money_display.was_changed = true;
+        money_display.change = std::cmp::max(money_display.change, diff / 33 + 1);
         money_display.current = std::cmp::min(money.0, money_display.current + money_display.change);
         text_color.0 = MONEY_TEXT_COLOR_INC;
     } else if money.0 < money_display.current {
+        money_display.was_changed = true;
+        money_display.change = std::cmp::min(money_display.change, diff / 33 - 1);
+        money_display.current = std::cmp::max(money.0, money_display.current + money_display.change);
         text_color.0 = MONEY_TEXT_COLOR_DEC;
-        money_display.current = std::cmp::max(money.0, money_display.current - money_display.change);
     } else {
         text_color.0 = MONEY_TEXT_COLOR;
+        if money_display.was_changed {
+            money_display.was_changed = false;
+            money_display.change = 0;
+        }
     }
     ***money_text = format_money_text(money_display.current);
 }
@@ -121,5 +131,5 @@ pub fn update_sus_gauge(
     suspicion: Res<Suspicion>,
     mut marker_node: Single<&mut Node, With<SusMarker>>
 ) {
-    marker_node.left = Val::Percent((suspicion.0 - 1.0) * -100.0)
+    marker_node.left = Val::Percent((suspicion.0 - 1.0) * -92.0 + 4.0)
 }
