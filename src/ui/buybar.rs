@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{casino::CasinoMoney, grid::attraction::{AttractionBlueprints, AttractionType}, peeps::server::SpawnServerEvent, ui::{placing::SelectedAttraction, utils::format_money_text}};
+use crate::{casino::CasinoMoney, grid::attraction::{AttractionBlueprints, AttractionType}, peeps::server::SpawnServerEvent, ui::{placing::SelectedAttraction, title::{UiContainer}, utils::format_money_text}};
 
 const CONTAINER_HEIGHT: Val = Val::Percent(15.0);
 const CONTAINER_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
@@ -30,7 +30,9 @@ pub fn create_buybar(
             height: CONTAINER_HEIGHT,
             flex_direction: FlexDirection::Row,
             ..default()
-        }
+        },
+        Visibility::Hidden,
+        UiContainer
     );
     commands.spawn(container).with_children(
         |commands| {
@@ -100,7 +102,7 @@ pub fn create_buybar(
                         TextLayout::new_with_justify(Justify::Center)
                     ));
                 }
-                );
+            );
         }
     );
 }
@@ -145,14 +147,14 @@ pub fn update_server_button(
     let (interaction, mut color) = server_button.into_inner();
     match *interaction {
         Interaction::Pressed => {
-                *color = BUTTON_COLOR_PRESS.into();
-                commands.trigger(SpawnServerEvent);
-            }
-            Interaction::Hovered => {
-                *color = BUTTON_COLOR_HOVER.into();
-            }
-            Interaction::None => {
-                *color = BUTTON_COLOR.into();
-            }
+            *color = BUTTON_COLOR_PRESS.into();
+            commands.trigger(SpawnServerEvent);
+        }
+        Interaction::Hovered => {
+            *color = BUTTON_COLOR_HOVER.into();
+        }
+        Interaction::None => {
+            *color = BUTTON_COLOR.into();
+        }
     }
 }

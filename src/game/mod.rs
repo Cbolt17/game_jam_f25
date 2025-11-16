@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::app::Plugin;
 
 use crate::game::end::end_check;
+use crate::ui::title::{UiContainer, toggle_ui_visibility};
 
 mod end;
 
@@ -31,6 +32,7 @@ fn start_game(
     state: Res<State<GameState>>,
     mut next_state: ResMut<NextState<GameState>>,
     mut time: ResMut<Time<Virtual>>,
+    ui_query: Query<&mut Visibility, With<UiContainer>>
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         time.unpause();
@@ -39,6 +41,7 @@ fn start_game(
             GameState::Paused => NextState::Pending(GameState::Started),
             GameState::Started => NextState::Pending(GameState::Paused),
         };
+        toggle_ui_visibility(ui_query);
     }
 }
 
