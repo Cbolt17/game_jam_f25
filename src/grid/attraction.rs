@@ -60,7 +60,7 @@ impl AttractionBlueprints {
             blueprints: vec![
                 Attraction::new(5000, 10, 10.0, 0.51,  100, 5), // Roulette
                 Attraction::new(10000, 5,  5.0,  0.55,  200, 5),  // BlackJack
-                Attraction::new(19167, 8,  30.0, 100.0, 20,  5),  // Bar
+                Attraction::new(25000, 8,  30.0, 100.0, 20,  5),  // Bar
             ]
         }
     }
