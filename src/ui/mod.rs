@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::app::Plugin;
 
-use crate::{game::GameState, ui::{buybar::{create_buybar, update_buttons, update_server_button}, header::{MoneyDisplay, create_header, update_capacity_text, update_money_text, update_sus_gauge, update_time_text}, placing::{SelectedAttraction, place_attraction}, title::create_title}};
+use crate::{game::GameState, ui::{buybar::{create_buybar, update_buttons, update_server_button}, header::{MoneyDisplay, create_header, update_capacity_text, update_money_text, update_sus_gauge, update_time_text}, placing::{SelectedAttraction, place_attraction}, title::{create_title, update_lose_text, update_win_text}}};
 
 pub mod utils;
 pub mod header;
@@ -24,6 +24,8 @@ impl Plugin for UiPlugin {
                 place_attraction,
                 update_time_text,
             ))
+            .add_observer(update_win_text)
+            .add_observer(update_lose_text)
             .insert_resource(MoneyDisplay{current: 0, change: 0, was_changed: false})
             .insert_resource(SelectedAttraction::None)
             .add_systems(OnExit(GameState::Started), reset)

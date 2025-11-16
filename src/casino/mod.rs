@@ -5,7 +5,7 @@ use crate::casino::income::casino_bet_result;
 use crate::game::GameState;
 
 const START_CASH: i64 = 20000;
-const TIME_LIMIT: f32 = 30.0;
+const TIME_LIMIT: f32 = 10.0;
 
 mod income;
 

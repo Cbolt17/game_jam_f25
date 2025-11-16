@@ -4,7 +4,7 @@ use bevy::app::Plugin;
 use crate::game::end::end_check;
 use crate::ui::title::{UiContainer, toggle_ui_visibility};
 
-mod end;
+pub mod end;
 
 pub struct GamePlugin;
 
