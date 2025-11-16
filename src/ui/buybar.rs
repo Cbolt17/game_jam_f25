@@ -1,16 +1,20 @@
 use bevy::prelude::*;
 
-use crate::{casino::CasinoMoney, grid::attraction::{AttractionBlueprints, AttractionType}, ui::{placing::SelectedAttraction, utils::format_money_text}};
+use crate::{casino::CasinoMoney, grid::attraction::{AttractionBlueprints, AttractionType}, peeps::server::SpawnServerEvent, ui::{placing::SelectedAttraction, utils::format_money_text}};
 
 const CONTAINER_HEIGHT: Val = Val::Percent(15.0);
 const CONTAINER_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
 
 const ITEM_WIDTH: Val = Val::Px(80.0);
+const ITEM_WIDTH_S: Val = Val::Px(50.0);
 const BUTTON_TEXT_WIDTH : Val = Val::Px(64.0);
 const BUTTON_COLOR: Color = Color::srgb(0.5, 0.5, 0.5);
 const BUTTON_COLOR_HOVER: Color = Color::srgb(0.57, 0.57, 0.57);
 const BUTTON_COLOR_PRESS: Color = Color::srgb(0.45, 0.45, 0.45);
 const BUTTON_COLOR_DISABLE: Color = Color::srgb(0.65, 0.3, 0.3);
+
+#[derive(Component)]
+pub struct ServerButton;
 
 pub fn create_buybar(
     mut commands: Commands,
@@ -64,6 +68,39 @@ pub fn create_buybar(
                 }
                 );
             }
+            commands.spawn((
+                    Button,
+                    Node {
+                        margin: UiRect::all(Val::Px(2.0)),
+                        padding: UiRect::all(Val::Px(2.0)),
+                        align_items: AlignItems::Center,
+                        flex_direction: FlexDirection::Column,
+                        ..default()
+                    },
+                    BackgroundColor(BUTTON_COLOR),
+                    ServerButton
+                ),
+                ).with_children(|commands| {
+                    commands.spawn((
+                        Node {
+                            height: ITEM_WIDTH_S,
+                            width: ITEM_WIDTH_S,
+                            margin: UiRect { top: (Val::Px(15.0)), bottom: (Val::Px(15.0)), ..default() },
+                            ..default()
+                        },
+                        ImageNode::new(asset_server.load("BellHop.png"))
+                    ));
+                    commands.spawn((
+                        Node {
+                            width: ITEM_WIDTH,
+                            ..default()
+                        },
+                        Text::new("$100/10s"),
+                        TextFont::from_font_size(13.0),
+                        TextLayout::new_with_justify(Justify::Center)
+                    ));
+                }
+                );
         }
     );
 }
@@ -75,7 +112,7 @@ pub fn update_buttons(
             &mut BackgroundColor,
             &AttractionType
         ),
-        (Changed<Interaction>, With<Button>)
+        With<Button>
     >,
     mut selected_attraction: ResMut<SelectedAttraction>,
     blueprints: Res<AttractionBlueprints>,
@@ -98,5 +135,24 @@ pub fn update_buttons(
                 *color = BUTTON_COLOR.into();
             }
         }
+    }
+}
+
+pub fn update_server_button(
+    mut commands: Commands,
+    server_button: Single<(&Interaction, &mut BackgroundColor), (Changed<Interaction>, With<ServerButton>)>
+) {
+    let (interaction, mut color) = server_button.into_inner();
+    match *interaction {
+        Interaction::Pressed => {
+                *color = BUTTON_COLOR_PRESS.into();
+                commands.trigger(SpawnServerEvent);
+            }
+            Interaction::Hovered => {
+                *color = BUTTON_COLOR_HOVER.into();
+            }
+            Interaction::None => {
+                *color = BUTTON_COLOR.into();
+            }
     }
 }
