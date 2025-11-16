@@ -3,11 +3,13 @@ use bevy::app::Plugin;
 
 use crate::game::GameState;
 use crate::peeps::effects::*;
-use crate::peeps::inspector::{InspectorSpawner, SpawnInspectorEvent, inspector_spawner, inspector_spawner_timer, inspector_taken, inspector_target, inspector_target_die};
+use crate::peeps::inspector::*;
+use crate::peeps::peep_spawner::PeepMoneyMult;
 use crate::peeps::peep_spawner::{PeepSpawner, SpawnPeepEvent, peep_spawner_timer};
 use crate::peeps::peeps::*;
 use crate::peeps::peep_spawner::peep_spawner;
 use crate::peeps::drunk::*;
+use crate::peeps::server::money_draw;
 use crate::peeps::server::{SpawnServerEvent, server_spawner, server_target, start_wandering};
 
 pub mod peeps;
@@ -40,14 +42,14 @@ impl Plugin for PeepsPlugin {
                 inspector_spawner_timer,
                 pass_out_die,
                 start_wandering,
-
+                money_draw,
             ))
             .add_observer(bet_result)
             .add_observer(bet_effect)
             .add_observer(peep_reach_attraction)
             .add_observer(peep_reach_door)
-            .add_observer(server_reach_door)
-            .add_observer(server_reach_peep)
+            //.add_observer(server_reach_door)
+            //.add_observer(server_reach_peep)
             .add_observer(server_wander)
             .add_observer(add_drunk_timer)
             .add_observer(peep_passout)
@@ -65,10 +67,12 @@ impl Plugin for PeepsPlugin {
 
 fn reset(
     mut spawner: ResMut<PeepSpawner>,
-    mut i_spawner: ResMut<InspectorSpawner>
+    mut i_spawner: ResMut<InspectorSpawner>,
+    mut money_mult: ResMut<PeepMoneyMult>,
 ) {
     spawner.reset();
     i_spawner.reset();
+    money_mult.reset();
 }
 
 fn cheats(

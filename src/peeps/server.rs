@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 use rand::Rng;
-use crate::{grid::{attraction::Attraction, door::Door}, peeps::{drunk::PassOut, peeps::Peep, play::GoTo}};
+use crate::{grid::{attraction::Attraction, door::Door, play_attraction::BetResult}, peeps::{drunk::PassOut, peeps::Peep, play::GoTo}};
+
+const DRAW_TIME: f32 = 10.0;
+const DRAW_AMT: i64 = 100;
 
 #[derive(Component)]
 #[relationship(relationship_target = CarriedPeep)]
@@ -27,6 +30,29 @@ pub struct SpawnServerEvent;
 #[derive(Component)]
 pub struct Server;
 
+#[derive(Component)]
+pub struct MoneyDraw{
+    pub timer: Timer,
+}
+
+impl MoneyDraw {
+    pub fn new() -> Self{
+        MoneyDraw{timer: Timer::from_seconds(DRAW_TIME, TimerMode::Repeating)}
+    }
+}
+
+pub fn money_draw(
+    mut query: Query<(Entity, &mut MoneyDraw)>,
+    mut commands: Commands,
+    time: Res<Time>,
+) {
+    for (entity, mut draw) in query.iter_mut() {
+        if draw.timer.tick(time.delta()).just_finished() {
+            commands.trigger(BetResult::new(entity, DRAW_AMT));
+        }
+    }
+}
+
 pub fn spawn_server(
     position: Vec2,
     commands: &mut Commands, 
@@ -37,6 +63,7 @@ pub fn spawn_server(
     commands.spawn((
         Peep,
         Server,
+        MoneyDraw::new(),
         Sprite {
             image: asset_server.load(image),
             ..default()
@@ -56,13 +83,13 @@ pub fn server_spawner(
 
 pub fn server_target(
     passed_query: Query<Entity, (With<PassOut>, Without<Server>, Without<CarriedIntent>)>,
-    server_query: Query<Entity, (With<Server>, Without<CarryingIntent>)>,
+    server_query: Query<(Entity, Option<&Wandering>), (With<Server>, Without<CarryingIntent>)>,
     mut commands: Commands,
 ) {
     let mut i = 0;
     let mut passed_iter = passed_query.iter();
     let count = passed_iter.clone().count();
-    for entity in server_query.iter() {
+    for (entity, op_wander) in server_query.iter() {
         i += 1;
         if i <= count {
             if let Some(passed_entity) = passed_iter.next() {
@@ -73,13 +100,16 @@ pub fn server_target(
             }
         }
         else {
-            commands.entity(entity).insert(Wandering);
+            match op_wander {
+                None => {commands.entity(entity).insert(Wandering);}
+                Some(_) => {}
+            }
         }
     }
 }
 
 pub fn start_wandering(
-    wander: Query<Entity, (With<Server>, Without<Wandering>, Without<CarryingIntent>)>,
+    wander: Query<Entity, (With<Server>, With<Wandering>, Without<GoTo>)>,
     query: Query<Entity, With<Attraction>>,
     mut commands: Commands,
 ) {

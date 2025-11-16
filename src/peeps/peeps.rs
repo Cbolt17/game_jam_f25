@@ -179,11 +179,11 @@ pub fn server_reach_peep(
 
 pub fn server_wander(
     reached: On<GoalReached>,
-    server_query: Query<Entity, (With<Server>, With<Wandering>)>,
+    server_query: Query<Entity, (With<Server>, With<Wandering>, Without<CarryingIntent>)>,
     mut commands: Commands
 ) {
-    if let Ok(entity) = server_query.get(reached.peep) {
-        let mut entity = commands.entity(entity);
+    if let Ok(_) = server_query.get(reached.peep) {
+        let mut entity = commands.entity(reached.peep);
         entity.remove::<GoTo>();
         entity.remove::<Wandering>();
     }

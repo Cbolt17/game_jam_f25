@@ -4,7 +4,7 @@ use rand::Rng;
 use crate::peeps::{play::GoTo, server::CarriedPeep};
 
 const HALF_PI: f32 = 3.141592652589 / 2.0;
-const DIE_TIME: f32 = 5.0;
+const DIE_TIME: f32 = 30.0;
 
 #[derive(Component)]
 pub struct Drunk(pub u64);

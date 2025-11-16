@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{casino::{PeepCount, CasinoMoney, Suspicion}, ui::utils::format_money_text};
+use crate::{casino::{CasinoMoney, PeepCount, Suspicion}, peeps::peeps::Peep, ui::utils::format_money_text};
 
 const CONTAINER_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
 const CONTAINER_HEIGHT: Val = Val::Px(40.0);
@@ -111,10 +111,10 @@ pub fn update_money_text(
 }
 
 pub fn update_capacity_text(
-    count: Res<PeepCount>,
+    peep_query: Query<(), With<Peep>>,
     mut capacity_text: Single<&mut Text, With<CapacityText>>
 ) {
-    ***capacity_text = format!("Peeps: {}", count.0);
+    ***capacity_text = format!("Peeps: {}", peep_query.count());
 }
 
 pub fn update_sus_gauge(

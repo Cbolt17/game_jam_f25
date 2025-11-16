@@ -25,18 +25,20 @@ pub struct SpawnInspectorEvent;
 #[derive(Resource)]
 pub struct InspectorSpawner {
     accel: Timer,
+    start_rate: f32,
     rate: f32,
     countdown: f32,
 }
 
 impl InspectorSpawner {
     pub fn new(rate: f32, countdown: f32) -> Self {
-        InspectorSpawner{accel: Timer::from_seconds(ACCEL_INC, TimerMode::Repeating), rate, countdown}
+        InspectorSpawner{accel: Timer::from_seconds(ACCEL_INC, TimerMode::Repeating),start_rate: rate, rate, countdown}
     }
     pub fn cycle_back(&mut self) {
         self.countdown += self.rate;
     }
     pub fn reset(&mut self) {
+        self.rate = self.start_rate;
         self.countdown = self.rate;
     }
 }
