@@ -13,6 +13,9 @@ pub enum RiskProfile {
 pub struct Record(VecDeque<i64>);
 
 impl Record {
+    pub fn new() -> Self {
+        Record(VecDeque::new())
+    }
     pub fn update(&mut self, amt: i64) {
         self.0.push_back(amt);
         if self.0.len() > 10 {
@@ -26,6 +29,29 @@ impl Record {
         }
         rate /= self.0.len() as f32;
         quit_rate >= rate
+    }
+}
+
+#[derive(Component)]
+pub struct NoPlayRecord(pub u64);
+
+impl NoPlayRecord {
+    pub fn reset(&mut self) {
+        self.0 = 0;
+    }
+}
+
+#[derive(EntityEvent)]
+pub struct FoundFullEvent {
+    pub entity: Entity
+}
+
+pub fn found_full_observer(
+    full: On<FoundFullEvent>,
+    mut peeps_query: Query<&mut NoPlayRecord>,
+) {
+    if let Ok(mut record) = peeps_query.get_mut(full.entity) {
+        record.0 += 1;
     }
 }
 
@@ -48,7 +74,7 @@ impl BetProfile {
             self.max_bet.min(max_bet).min(money)
         )
     }
-    pub fn bet(&self, risk: RiskProfile, money: u64, bounds: U64Vec2) -> u64 {
+    pub fn bet(&self, risk: RiskProfile, bounds: U64Vec2) -> u64 {
         let mut random = rand::thread_rng();
         let weight = match risk {
             RiskProfile::Conservative => random.gen_range(0.0_f32..1.0_f32).min(random.gen_range(0.0_f32..1.0_f32)),

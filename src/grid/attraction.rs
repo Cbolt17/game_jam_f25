@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use bevy::prelude::*;
 use rand::Rng;
 
@@ -60,9 +58,9 @@ impl AttractionBlueprints {
     pub fn new() -> Self {
         AttractionBlueprints { 
             blueprints: vec![
-                Attraction::new(5000, 10, 10.0, 0.51,  100, 5), // Roulette
-                Attraction::new(10000, 5,  5.0,  0.55,  200, 5),  // BlackJack
-                Attraction::new(19167, 8,  1.0, 100.0, 20,  5),  // Bar
+                Attraction::new(1000, 10, 10.0, 0.52,  100, 5), // Roulette
+                Attraction::new(2000, 5,  5.0,  0.55,  200, 5),  // BlackJack
+                Attraction::new(5000, 8,  1.0, 100.0, 20,  5),  // Bar
             ]
         }
     }
@@ -102,6 +100,9 @@ impl Attraction {
             return true;
         }
         false
+    }
+    pub fn remove_player(&mut self) {
+        self.players -= 1;
     }
     pub fn set_capacity(&mut self, amt: u32) {
         self.capacity = amt;

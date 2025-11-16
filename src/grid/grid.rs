@@ -10,12 +10,6 @@ pub fn to_cell(pos: Vec2) -> UVec2 {
     UVec2::new((pos.x / CELL_SIZE) as u32, (pos.y / CELL_SIZE) as u32)
 }
 
-#[derive(Resource)]
-pub struct AttractionGrid {
-    size: UVec2,
-    cells: Vec<Vec<Option<Entity>>>,
-}
-
 #[derive(Event)]
 pub struct GridResize {
     old: UVec2,
@@ -52,6 +46,19 @@ pub fn grid_start(
                 ),
             ));
         }
+    }
+    for x in 0..grid.get_size().x {
+        commands.spawn((
+            Sprite {
+                image: asset_server.load("Wall.png"),
+                ..default()
+            },
+            Transform::from_xyz(
+                (x as f32 + 0.5) * CELL_SIZE,
+                -8.0,
+                7.9
+            ),
+        ));
     }
 }
 
@@ -92,6 +99,12 @@ pub fn on_grid_resize (
     }
 }
 
+#[derive(Resource)]
+pub struct AttractionGrid {
+    size: UVec2,
+    cells: Vec<Vec<Option<Entity>>>,
+}
+
 impl AttractionGrid {
     pub fn new(size: UVec2) -> Self {
         AttractionGrid{size, cells: vec![vec![None; size.y as usize]; size.x as usize]}
@@ -107,8 +120,8 @@ impl AttractionGrid {
     }
     pub fn get_cell(pos: Vec2) -> IVec2 {
         IVec2::new(
-            (pos.x / CELL_SIZE) as i32, 
-            (pos.y / CELL_SIZE) as i32
+            (pos.x / CELL_SIZE).floor() as i32, 
+            (pos.y / CELL_SIZE).floor() as i32
         )
     }
     pub fn get_coords(pos: IVec2) -> Vec2 {
@@ -127,6 +140,12 @@ impl AttractionGrid {
     }
     pub fn get_size(&self) -> UVec2 {
         self.size
+    }
+    pub fn get_door(&self) -> Vec2 {
+        Vec2::new(
+            ((self.size.x / 2) as f32 + 0.5) * CELL_SIZE,
+            -8.0,
+        )
     }
     pub fn add(
         &mut self, 

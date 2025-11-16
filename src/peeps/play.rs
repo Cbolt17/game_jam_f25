@@ -24,3 +24,16 @@ pub struct GoTo(pub Entity);
 #[derive(Component)]
 #[relationship_target(relationship = GoTo)]
 pub struct Location(Vec<Entity>);
+
+#[derive(EntityEvent)]
+pub struct GoalReached {
+    #[event_target]
+    pub peep: Entity,
+    pub location: Entity
+}
+
+impl GoalReached {
+    pub fn new(peep: Entity, location: Entity) -> Self {
+        GoalReached{peep, location}
+    }
+}

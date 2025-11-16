@@ -4,9 +4,11 @@ use bevy::app::Plugin;
 pub mod grid;
 pub mod attraction;
 pub mod play_attraction;
+pub mod door;
 
 use grid::AttractionGrid;
 use crate::grid::attraction::*;
+use crate::grid::door::set_door;
 use crate::grid::grid::*;
 use crate::grid::play_attraction::play_game;
 
@@ -20,48 +22,15 @@ impl Plugin for GridPlugin {
             .insert_resource(AttractionGrid::new(START_GRID_SIZE))
             .insert_resource(AvailableAttractions::new())
             .insert_resource(AttractionBlueprints::new())
-            .add_systems(Startup, grid_start)
-            .add_systems(Startup, test)
+            .add_systems(Startup, (
+                grid_start,
+                set_door,
+            ))
             .add_systems(Update, (
                 get_available_attractions,
                 play_game
             ))
             .add_observer(on_grid_resize)
         ;
-    }
-}
-
-fn test(
-    mut grid: ResMut<AttractionGrid>,
-    blueprints: Res<AttractionBlueprints>,
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
-    for i in 0..1 {
-        grid.add(
-            Vec2::splat(i as f32 * CELL_SIZE), 
-            &AttractionType::Roulette, 
-            &blueprints, 
-            &mut commands, 
-            &asset_server
-        );
-    }
-    for i in 1..6 {
-        grid.add(
-            Vec2::new(i as f32 * CELL_SIZE, 0.0), 
-            &AttractionType::BlackJack, 
-            &blueprints, 
-            &mut commands, 
-            &asset_server
-        );
-    }
-    for i in 1..6 {
-        grid.add(
-            Vec2::new(0.0, i as f32 * CELL_SIZE), 
-            &AttractionType::Bar, 
-            &blueprints, 
-            &mut commands, 
-            &asset_server
-        );
     }
 }
