@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use rand::Rng;
 
 use crate::grid::attraction::*;
+use crate::grid::door::Door;
 use crate::peeps::drunk::Drunk;
 use crate::peeps::play::*;
 use crate::peeps::profile::*;
@@ -19,6 +20,7 @@ impl BetResult {
 }
 
 pub fn play_game(
+    door: Single<Entity, With<Door>>,
     mut attraction_query: Query<(&mut Attraction, &AttractionType, &mut AttractionCooldown, &Players)>,
     mut peep_query: Query<(Entity, &MoneyProfile, &BetProfile, &RiskProfile, &mut NoPlayRecord, &mut Record, Option<&mut Drunk>)>,
     time: Res<Time>,
@@ -53,6 +55,19 @@ pub fn play_game(
                             };
                             commands.trigger(BetResult::new(peep_entity, bet));
                             record.update(bet);
+                            match record.opinion() {
+                                RecordOpinion::NewGame => {
+                                    commands.entity(peep_entity).remove::<Playing>();
+                                    attraction.remove_player();
+                                },
+                                RecordOpinion::Leave => {
+                                    let mut entity = commands.entity(peep_entity);
+                                    entity.remove::<Playing>();
+                                    entity.insert(GoTo(*door));
+                                    attraction.remove_player();
+                                },
+                                RecordOpinion::Stay => {},
+                            }
                         }
                         else {
                             play_record.0 += 1;
@@ -84,6 +99,19 @@ pub fn play_game(
                         };
                         commands.trigger(BetResult::new(peep_entity, bet));
                         record.update(bet);
+                        match record.opinion() {
+                            RecordOpinion::NewGame => {
+                                commands.entity(peep_entity).remove::<Playing>();
+                                attraction.remove_player();
+                            },
+                            RecordOpinion::Leave => {
+                            let mut entity = commands.entity(peep_entity);
+                                entity.remove::<Playing>();
+                                entity.insert(GoTo(*door));
+                                attraction.remove_player();
+                            },
+                            RecordOpinion::Stay => {},
+                        }
                     }
                     else {
                         play_record.0 += 1;

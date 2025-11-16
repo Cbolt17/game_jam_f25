@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{grid::{attraction::{Attraction, AvailableAttractions}, door::Door, grid::{AttractionGrid, CELL_SIZE}, play_attraction::BetResult}, peeps::{drunk::PassOut, play::{GoTo, GoalReached, Playing}, profile::{MoneyProfile, NoPlayRecord}, server::{Carrying, Server}}};
+use crate::{grid::{attraction::{Attraction, AvailableAttractions}, door::Door, grid::{AttractionGrid, CELL_SIZE}, play_attraction::BetResult}, peeps::{drunk::{Die, PassOut}, effects::Despawner, inspector::{Inspector, Monitoring}, play::{GoTo, GoalReached, Playing}, profile::{MoneyProfile, NoPlayRecord}, server::{Carrying, CarryingIntent, Server}}};
 
 #[derive(Resource)]
 pub struct PeepSheet(pub Handle<TextureAtlasLayout>);
@@ -9,12 +9,14 @@ pub struct PeepSheet(pub Handle<TextureAtlasLayout>);
 pub struct Peep;
 
 const PEEP_SPEED: f32 = 40.0;
+const GHOST_SPEED: f32 = 30.0; 
+const GHOST_DURATION: f32 = 1.1;
 
 impl FromWorld for PeepSheet {
     fn from_world(world: &mut World) -> Self {
         let texture_atlas = TextureAtlasLayout::from_grid(
             (16, 16).into(), // The size of each image
-            2,               // The number of columns
+            3,               // The number of columns
             1,               // The number of rows
             None,            // Padding
             None,            // Offset
@@ -28,15 +30,33 @@ impl FromWorld for PeepSheet {
     }
 }
 
+pub fn make_peep_happy(sprite: &mut Sprite) {
+    if let Some(atlas) = &mut sprite.texture_atlas {
+        atlas.index = 0;
+    }
+}
+
 pub fn make_peep_angy(sprite: &mut Sprite) {
     if let Some(atlas) = &mut sprite.texture_atlas {
         atlas.index = 1;
     }
 }
 
-pub fn make_peep_happy(sprite: &mut Sprite) {
-    if let Some(atlas) = &mut sprite.texture_atlas {
-        atlas.index = 0;
+pub fn make_peep_dead(
+    dead: On<Die>,
+    mut peep_query: Query<(&mut Sprite, &mut Transform), With<Peep>>,
+    mut commands: Commands,
+) {
+    if let Ok((mut sprite, mut tran)) = peep_query.get_mut(dead.0) {
+        let mut entity = commands.entity(dead.0);
+        entity.remove::<GoTo>();
+        entity.remove::<Peep>();
+        entity.remove::<PassOut>();
+        entity.insert(Despawner::new(GHOST_SPEED, GHOST_DURATION));
+        tran.rotation = Quat::IDENTITY;
+        if let Some(atlas) = &mut sprite.texture_atlas {
+            atlas.index = 2;
+        }
     }
 }
 
@@ -73,7 +93,7 @@ pub fn peep_goto(
         let goal_cell = AttractionGrid::get_cell(goal);
         let loc_cell = AttractionGrid::get_cell(location);
         let dif = goal_cell - loc_cell;
-        if dif.x.abs() > dif.y.abs() && location.y >= -10.0 {
+        if dif.x.abs() > dif.y.abs() && (location.y >= -10.0 || goal_cell.y < 0) {
             if dif.x != 0 {
                 location.x += (dif.x / dif.x.abs()) as f32 * PEEP_SPEED * time.delta_secs();
             }
@@ -87,7 +107,7 @@ pub fn peep_goto(
             let pos = AttractionGrid::get_coords(goal_cell) + Vec2::new(0.5 * CELL_SIZE, 0.2 * CELL_SIZE);
             let mut dif = pos - location;
             if goto.0 == *door {
-                dif.y += 32.0;
+                dif += Vec2::new(-16.0, 32.0);
             }
             if dif.length_squared() > 0.1 * CELL_SIZE {
                 location += dif.normalize_or_zero() * PEEP_SPEED * time.delta_secs();
@@ -128,7 +148,7 @@ pub fn peep_reach_attraction(
 pub fn peep_reach_door(
     reached: On<GoalReached>,
     door: Single<Entity, With<Door>>,
-    mut peep_query: Query<Entity, (With<GoTo>, Without<Server>)>,
+    mut peep_query: Query<Entity, (With<GoTo>, Without<Server>, Without<Inspector>)>,
     mut commands: Commands
 ) {
     if reached.location == *door {
@@ -142,14 +162,15 @@ pub fn peep_reach_door(
 pub fn server_reach_peep(
     reached: On<GoalReached>,
     door: Single<Entity, With<Door>>,
-    server_query: Query<Entity, (With<Server>, With<Carrying>)>,
-    mut peep_query: Query<(Entity, &mut Transform), (With<Peep>, Without<Server>)>,
+    server_query: Query<Entity, (With<Server>, With<CarryingIntent>)>,
+    mut peep_query: Query<(Entity, &mut Transform), (With<Peep>, Without<Server>, Without<Inspector>)>,
     mut commands: Commands
 ) {
     if let Ok((peep_entity, mut transform)) = peep_query.get_mut(reached.location) {
         if let Ok(entity) = server_query.get(reached.peep) {
             let mut server = commands.entity(entity);
             server.insert(GoTo(*door));
+            server.insert(Carrying(peep_entity));
             server.add_child(peep_entity);
             transform.translation = Vec3::new(0.0, 8.0, -0.01);
         }
@@ -164,9 +185,25 @@ pub fn server_reach_door(
 ) {
     if reached.location == *door {
         if let Ok((entity, carrying)) = server_query.get_mut(reached.peep) {
-            commands.entity(entity).remove::<Carrying>();
-            commands.entity(carrying.0).despawn();
+            let carried = carrying.0;
+            let mut entity = commands.entity(entity);
+            entity.remove::<Carrying>();
+            entity.remove::<CarryingIntent>();
+            entity.remove::<GoTo>();
+            commands.entity(carried).despawn();
         }
+    }
+}
+
+pub fn inspector_reach_peep(
+    reached: On<GoalReached>,
+    inspector_query: Query<Entity, With<Inspector>>,
+    mut commands: Commands
+) {
+    if let Ok(_) = inspector_query.get(reached.peep) {
+        let mut entity = commands.entity(reached.peep);
+        entity.remove::<GoTo>();
+        entity.insert(Monitoring(reached.location));
     }
 }
 

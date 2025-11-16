@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use rand::Rng;
-use crate::{grid::door::Door, peeps::{drunk::PassOut, peeps::Peep, play::GoTo}};
+use crate::{grid::door::Door, peeps::{drunk::PassOut, peeps::Peep, play::{GoTo, Location}}};
 
 #[derive(Component)]
 #[relationship(relationship_target = CarriedPeep)]
@@ -9,6 +9,14 @@ pub struct Carrying(pub Entity);
 #[derive(Component)]
 #[relationship_target(relationship = Carrying)]
 pub struct CarriedPeep(Entity);
+
+#[derive(Component)]
+#[relationship(relationship_target = CarriedIntent)]
+pub struct CarryingIntent(pub Entity);
+
+#[derive(Component)]
+#[relationship_target(relationship = CarryingIntent)]
+pub struct CarriedIntent(Entity);
 
 #[derive(Event)]
 pub struct SpawnServerEvent;
@@ -43,16 +51,16 @@ pub fn server_spawner(
     spawn_server(door.translation.xy(), &mut commands, &asset_server);
 }
 
-pub fn server_do_stuff(
-    passed_query: Query<Entity, (With<PassOut>, Without<Server>, Without<CarriedPeep>)>,
-    server_query: Query<Entity, (With<Server>, Without<Carrying>)>,
+pub fn server_target(
+    passed_query: Query<Entity, (With<PassOut>, Without<Server>, Without<CarriedIntent>)>,
+    server_query: Query<Entity, (With<Server>, Without<CarryingIntent>)>,
     mut commands: Commands,
 ) {
     let mut passed_iter = passed_query.iter();
     for entity in server_query.iter() {
         if let Some(passed_entity) = passed_iter.next() {
             let mut entity = commands.entity(entity);
-            entity.insert(Carrying(passed_entity));
+            entity.insert(CarryingIntent(passed_entity));
             entity.insert(GoTo(passed_entity));
         }
     }

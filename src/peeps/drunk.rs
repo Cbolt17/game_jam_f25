@@ -1,15 +1,19 @@
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::peeps::play::GoTo;
+use crate::peeps::{play::GoTo, server::CarriedPeep};
 
 const HALF_PI: f32 = 3.141592652589 / 2.0;
+const DIE_TIME: f32 = 5.0;
 
 #[derive(Component)]
 pub struct Drunk(pub u64);
 
+#[derive(EntityEvent)]
+pub struct Die(pub Entity);
+
 #[derive(Component)]
-pub struct PassOut;
+pub struct PassOut(pub Timer);
 
 #[derive(Component)]
 pub struct DrunkTimer(pub Timer);
@@ -36,7 +40,7 @@ pub fn passout_chance(
     for (entity, drunk, mut timer) in peep_query.iter_mut() {
         if timer.0.tick(time.delta()).just_finished() {
             if random.gen_range(0..10) < drunk.0 {
-                commands.entity(entity).insert(PassOut);
+                commands.entity(entity).insert(PassOut(Timer::from_seconds(DIE_TIME, TimerMode::Once)));
             }
         }
     }
@@ -50,5 +54,17 @@ pub fn peep_passout(
         let mut random = rand::thread_rng();
         let rads = if random.gen_bool(0.5) {-HALF_PI} else {HALF_PI};
         transform.rotate_z(rads);
+    }
+}
+
+pub fn pass_out_die(
+    mut passout_query: Query<(Entity, &mut PassOut), Without<CarriedPeep>>,
+    mut commands: Commands,
+    time: Res<Time>
+) {
+    for (entity, mut pass_out) in passout_query.iter_mut() {
+        if pass_out.0.tick(time.delta()).just_finished() {
+            commands.trigger(Die(entity));
+        }
     }
 }

@@ -56,7 +56,7 @@ pub fn grid_start(
             Transform::from_xyz(
                 (x as f32 + 0.5) * CELL_SIZE,
                 -8.0,
-                7.9
+                16.0
             ),
         ));
     }
@@ -109,6 +109,13 @@ impl AttractionGrid {
     pub fn new(size: UVec2) -> Self {
         AttractionGrid{size, cells: vec![vec![None; size.y as usize]; size.x as usize]}
     }
+    pub fn reset(&mut self) {
+        for x in 0..self.size.x {
+            for y in 0..self.size.y {
+                self.cells[x as usize][y as usize] = None;
+            }
+        }
+    }
     pub fn at(&self, pos: Vec2) -> Option<Entity> {
         let pos = to_cell(pos);
         if pos.x >= self.size.x || pos.y >= self.size.y {
@@ -143,7 +150,7 @@ impl AttractionGrid {
     }
     pub fn get_door(&self) -> Vec2 {
         Vec2::new(
-            ((self.size.x / 2) as f32 + 0.5) * CELL_SIZE,
+            (self.size.x / 2) as f32 * CELL_SIZE,
             -8.0,
         )
     }

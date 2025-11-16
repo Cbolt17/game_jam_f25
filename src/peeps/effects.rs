@@ -10,14 +10,23 @@ const TEXT_SPEED: f32 = 30.0;
 const TEXT_LIFETIME: f32 = 0.75;
 
 #[derive(Component)]
-pub struct BetText{
+pub struct Despawner{
+    pub speed: f32,
     pub timer: Timer,
     pub dir: Vec2
 }
 
-impl BetText {
-    pub fn new(timer: Timer, dir: Vec2) -> Self {
-        BetText{timer, dir}
+impl Despawner {
+    pub fn new(speed: f32, time: f32) -> Self {
+        let mut random = rand::thread_rng();
+        Despawner{
+            speed,
+            timer: Timer::from_seconds(time, TimerMode::Once),
+            dir:  Vec2::new(
+                random.gen_range(-0.5..0.5),
+                random.gen_range(0.5..1.0),
+            )
+        }
     }
 }
 
@@ -27,25 +36,17 @@ pub fn bet_effect(
     mut commands: Commands,
 ) {
     if let Ok(transform) = peep_query.get(bet_results.entity) {
-        let mut random = rand::thread_rng();
         let color = if bet_results.amt > 0 {RED} else {GREEN};
         let mut pos = transform.translation;
         pos.y += 16.0; // Peep size is 16
         let amt = bet_results.amt.abs().to_string();
-        let dir = Vec2::new(
-            random.gen_range(-0.5..0.5),
-            random.gen_range(0.5..1.0),
-        );
         let text = commands.spawn((
             Text2d::new(amt.clone()),
             TextColor(color),
             TextLayout::new_with_justify(Justify::Center),
             Transform::from_translation(pos)
                 .with_scale(Vec3::splat(0.4)), // original size
-            BetText::new(
-                Timer::from_seconds(TEXT_LIFETIME, TimerMode::Once),
-                dir
-            ),
+            Despawner::new(TEXT_SPEED, TEXT_LIFETIME),
         )).id();
         // Add Black border
         let bg = commands.spawn((
@@ -80,16 +81,16 @@ pub fn bet_effect(
 }
 
 pub fn move_bet_text(
-    mut bet_text: Query<(&mut Transform, &BetText)>,
+    mut bet_text: Query<(&mut Transform, &Despawner)>,
     time: Res<Time>,
 ) {
     for (mut transform, text) in bet_text.iter_mut() {
-        transform.translation = transform.translation + (text.dir * TEXT_SPEED * time.delta_secs()).extend(0.1);
+        transform.translation = transform.translation + (text.dir * text.speed * time.delta_secs()).extend(0.1);
     }
 }
 
 pub fn despawn_bet_text(
-    mut bet_text: Query<(Entity, &mut BetText)>,
+    mut bet_text: Query<(Entity, &mut Despawner)>,
     mut commands: Commands,
     time: Res<Time>,
 ) {

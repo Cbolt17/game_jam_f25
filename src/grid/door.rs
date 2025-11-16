@@ -13,7 +13,7 @@ pub fn set_door(
     let translation = grid.get_door();
     commands.spawn((
         Door,
-        Transform::from_translation(translation.extend(8.0)),
+        Transform::from_translation(translation.extend(16.1)),
         Sprite {
             image: asset_server.load("Door.png"),
             ..default()

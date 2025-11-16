@@ -9,6 +9,13 @@ pub enum RiskProfile {
     Normal,
     Risky
 }
+
+pub enum RecordOpinion {
+    NewGame,
+    Leave,
+    Stay,
+}
+
 #[derive(Component)]
 pub struct Record(VecDeque<i64>);
 
@@ -22,13 +29,25 @@ impl Record {
             self.0.pop_front();
         }
     }
-    pub fn quit(&self, quit_rate: f32) -> bool {
+    pub fn opinion(&self) -> RecordOpinion {
         let mut rate = 0.0;
         for val in self.0.iter() {
             rate += if *val >= 0 {1.0} else {-1.0};
         }
-        rate /= self.0.len() as f32;
-        quit_rate >= rate
+        let len = self.0.len();
+        rate /= len as f32;
+        if rate > 0.7 && len > 5 {
+            RecordOpinion::Leave
+        }
+        else if rate < 0.7 && len > 7 {
+            RecordOpinion::Leave
+        }
+        else if rate < 0.7 && len > 3 {
+            RecordOpinion::NewGame
+        }
+        else {
+            RecordOpinion::Stay
+        }
     }
 }
 
