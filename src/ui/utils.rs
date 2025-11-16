@@ -13,3 +13,10 @@ pub fn format_money_text(n: i64) -> String {
     result.push('$');
     result.chars().rev().collect()
 }
+
+pub fn format_time(minutes: f32) -> String {
+    let total_seconds = (minutes * 60.0).floor() as u64;
+    let mins = total_seconds / 60;
+    let secs = total_seconds % 60;
+    format!("Time Remaining: {:02}:{:02}", mins, secs)
+}

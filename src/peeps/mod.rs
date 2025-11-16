@@ -5,6 +5,7 @@ use crate::game::GameState;
 use crate::peeps::effects::*;
 use crate::peeps::inspector::*;
 use crate::peeps::peep_spawner::PeepMoneyMult;
+use crate::peeps::peep_spawner::money_mult_tick;
 use crate::peeps::peep_spawner::{PeepSpawner, SpawnPeepEvent, peep_spawner_timer};
 use crate::peeps::peeps::*;
 use crate::peeps::peep_spawner::peep_spawner;
@@ -27,7 +28,8 @@ impl Plugin for PeepsPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<PeepSheet>()
-            .insert_resource(PeepSpawner::new(5.0, 5.0))
+            .insert_resource(PeepMoneyMult::new())
+            .insert_resource(PeepSpawner::new(3.0, 3.0))
             .insert_resource(InspectorSpawner::new(150.0, 150.0))
             .add_systems(Update, (
                 cheats,
@@ -43,13 +45,14 @@ impl Plugin for PeepsPlugin {
                 pass_out_die,
                 start_wandering,
                 money_draw,
+                money_mult_tick,
             ))
             .add_observer(bet_result)
             .add_observer(bet_effect)
             .add_observer(peep_reach_attraction)
             .add_observer(peep_reach_door)
-            //.add_observer(server_reach_door)
-            //.add_observer(server_reach_peep)
+            .add_observer(server_reach_door)
+            .add_observer(server_reach_peep)
             .add_observer(server_wander)
             .add_observer(add_drunk_timer)
             .add_observer(peep_passout)

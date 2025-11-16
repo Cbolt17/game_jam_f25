@@ -58,7 +58,7 @@ impl AttractionBlueprints {
     pub fn new() -> Self {
         AttractionBlueprints { 
             blueprints: vec![
-                Attraction::new(1000, 10, 10.0, 0.52,  100, 5), // Roulette
+                Attraction::new(1000, 10, 8.0, 0.52,  100, 5), // Roulette
                 Attraction::new(2000, 5,  2.0,  0.55,  200, 5),  // BlackJack
                 Attraction::new(5000, 8,  1.0, 100.0, 20,  5),  // Bar
             ]

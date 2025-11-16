@@ -4,6 +4,7 @@ use rand::Rng;
 use crate::grid::attraction::*;
 use crate::grid::door::Door;
 use crate::peeps::drunk::Drunk;
+use crate::peeps::peep_spawner::PeepMoneyMult;
 use crate::peeps::play::*;
 use crate::peeps::profile::*;
 
@@ -24,6 +25,7 @@ pub fn play_game(
     mut attraction_query: Query<(&mut Attraction, &AttractionType, &mut AttractionCooldown, &Players)>,
     mut peep_query: Query<(Entity, &MoneyProfile, &BetProfile, &RiskProfile, &mut NoPlayRecord, &mut Record, Option<&mut Drunk>)>,
     time: Res<Time>,
+    mult: Res<PeepMoneyMult>,
     mut commands: Commands,
 ) {
     let mut random = rand::thread_rng();
@@ -37,7 +39,7 @@ pub fn play_game(
                     for player in players.get_players().iter() {
                         let (peep_entity, money, betting, risk, mut play_record, mut record, drunk) = 
                             peep_query.get_mut(*player).unwrap();
-                        let bounds = betting.bounds(money.0, attraction.min_bet(), attraction.max_bet());
+                        let bounds = betting.bounds(money.0, (attraction.min_bet()as f32*mult.mult) as u64, (attraction.max_bet()as f32*mult.mult) as u64);
                         // Try to bet
                         if bounds.x <= bounds.y {
                             play_record.reset();

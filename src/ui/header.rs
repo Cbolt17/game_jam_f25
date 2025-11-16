@@ -1,8 +1,8 @@
 use bevy::prelude::*;
-use crate::{casino::{CasinoMoney, PeepCount, Suspicion}, peeps::peeps::Peep, ui::utils::format_money_text};
+use crate::{casino::{CasinoMoney, PeepCount, Suspicion, TimeLimit}, peeps::peeps::Peep, ui::utils::{format_money_text, format_time}};
 
 const CONTAINER_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
-const CONTAINER_HEIGHT: Val = Val::Px(40.0);
+const CONTAINER_HEIGHT: Val = Val::Px(70.0);
 
 const MONEY_TEXT_COLOR: Color = Color::srgb(0.8, 1.0, 0.8);
 const MONEY_TEXT_COLOR_INC: Color = Color::srgb(0.5, 1.0, 0.7);
@@ -29,6 +29,9 @@ pub struct CapacityText;
 
 #[derive(Component)]
 pub struct SusMarker;
+
+#[derive(Component)]
+pub struct TimeText;
 
 pub fn create_header(mut commands: Commands, asset_server: Res<AssetServer>) {
     let container = (
@@ -61,12 +64,28 @@ pub fn create_header(mut commands: Commands, asset_server: Res<AssetServer>) {
         TextColor(CAPACITY_TEXT_COLOR),
         CapacityText
     );
+    let time_text = (
+        Node {
+            position_type: PositionType::Absolute,
+            left: Val::Percent(35.0),
+            top: Val::Percent(10.0),
+            width: Val::Percent(30.0),
+            height: Val::Percent(45.0),
+            border: UiRect::all(Val::Px(2.0)),
+            ..default()
+        },
+        Text::new(""),
+        TextLayout::new_with_justify(Justify::Center),
+        TextColor(GAUGE_RED),
+        TimeText
+    );
     let sus_gauge = (
         Node {
             position_type: PositionType::Absolute,
             left: Val::Percent(35.0),
             width: Val::Percent(30.0),
-            height: Val::Percent(60.0),
+            bottom: Val::Percent(10.0),
+            height: Val::Percent(35.0),
             border: UiRect::all(Val::Px(2.0)),
             ..default()
         },
@@ -90,7 +109,12 @@ pub fn create_header(mut commands: Commands, asset_server: Res<AssetServer>) {
         ImageNode::new(asset_server.load("GaugeMarker.png")),
         SusMarker
     );
-    commands.spawn((container, children![money_text, (sus_gauge, children![sus_marker]), capacity_text]));
+    commands.spawn((container, children![
+        money_text, 
+        (sus_gauge, children![sus_marker]), 
+        capacity_text,
+        time_text
+    ]));
 }
 
 pub fn update_money_text(
@@ -132,4 +156,11 @@ pub fn update_sus_gauge(
     mut marker_node: Single<&mut Node, With<SusMarker>>
 ) {
     marker_node.left = Val::Percent((suspicion.0 - 1.0) * -92.0 + 4.0)
+}
+
+pub fn update_time_text(
+    time_left: Res<TimeLimit>,
+    mut text: Single<&mut Text, With<TimeText>>,
+) {
+    ***text = format_time(time_left.0);
 }

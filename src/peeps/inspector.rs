@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use crate::{casino::Suspicion, grid::door::Door, peeps::{drunk::{Die, PassOut}, peeps::Peep, play::{GoTo, Location}, server::CarriedPeep}};
 
-pub const ACCEL_INC: f32 = 30.0;
-pub const ACCEL_RATE: f32 = 0.95;
+pub const ACCEL_INC: f32 = 18.0;
+pub const ACCEL_RATE: f32 = 0.90;
 
 #[derive(Component)]
 #[relationship(relationship_target = MonitoredBy)]
