@@ -1,11 +1,12 @@
 use bevy::prelude::*;
 
-use crate::{camera::CameraPlugin, casino::CasinoPlugin, grid::GridPlugin, peeps::PeepsPlugin, ui::UiPlugin};
+use crate::{camera::CameraPlugin, casino::CasinoPlugin, grid::GridPlugin, peeps::PeepsPlugin, ui::UiPlugin, audio::AudioPlugin};
 
 pub mod ui;
 pub mod grid;
 pub mod peeps;
 pub mod casino;
+pub mod audio;
 mod camera;
 
 fn main() {
@@ -17,6 +18,7 @@ fn main() {
             PeepsPlugin,
             CasinoPlugin,
             CameraPlugin,
+            AudioPlugin
         ))
     .run();
 }
