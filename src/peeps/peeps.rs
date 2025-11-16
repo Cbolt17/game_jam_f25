@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{grid::{attraction::AvailableAttractions, grid::{AttractionGrid, CELL_SIZE}}, peeps::play::{GoTo, Playing}};
+use crate::{grid::{attraction::AvailableAttractions, grid::{AttractionGrid, CELL_SIZE}, play_attraction::BetResult}, peeps::{play::{GoTo, Playing}, profile::{BetProfile, MoneyProfile, RiskProfile}}};
 
 #[derive(Resource)]
 pub struct PeepSheet(Handle<TextureAtlasLayout>);
@@ -34,6 +34,9 @@ pub fn spawn_peep(
     asset_server: &Res<AssetServer>,
     peep_sheet: &Res<PeepSheet>,
 ) {
+    let money_profile = MoneyProfile(100);
+    let risk = RiskProfile::Normal;
+    let bets = BetProfile::new(5, 80);
     commands.spawn((
         Peep,
         Sprite {
@@ -45,6 +48,9 @@ pub fn spawn_peep(
             ..default()
         },
         Transform::from_xyz(position.x, position.y, 0.0),
+        money_profile,
+        risk,
+        bets
     ));
 }
 
@@ -85,7 +91,6 @@ pub fn peep_goto(
         let goal_cell = AttractionGrid::get_cell(goal);
         let loc_cell = AttractionGrid::get_cell(location);
         let dif = goal_cell - loc_cell;
-        //println!("{}", dif);
         if dif.x.abs() > dif.y.abs() {
             if dif.x != 0 {
                 location.x += (dif.x / dif.x.abs()) as f32 * PEEP_SPEED * time.delta_secs();
@@ -104,9 +109,18 @@ pub fn peep_goto(
             }
             else {
                 commands.entity(entity).remove::<GoTo>();
-                //commands.entity(entity).add::<Playing>(a_entity);
+                commands.entity(entity).insert(Playing(a_entity));
             }
         }
         transform.translation = location.extend(-location.y);
+    }
+}
+
+pub fn bet_result(
+    bet_results: On<BetResult>,
+    mut peep_query: Query<&mut MoneyProfile, With<Peep>>,
+) {
+    if let Ok(mut money_profile) = peep_query.get_mut(bet_results.entity) {
+        money_profile.0 = (money_profile.0 as i64 - bet_results.amt) as u64;
     }
 }

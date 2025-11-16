@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use rand::Rng;
 
@@ -60,7 +62,7 @@ impl AttractionBlueprints {
             blueprints: vec![
                 Attraction::new(5000, 10, 10.0, 0.51,  100, 5), // Roulette
                 Attraction::new(10000, 5,  5.0,  0.55,  200, 5),  // BlackJack
-                Attraction::new(19167, 8,  30.0, 100.0, 20,  5),  // Bar
+                Attraction::new(19167, 8,  1.0, 100.0, 20,  5),  // Bar
             ]
         }
     }
@@ -74,18 +76,21 @@ impl AttractionBlueprints {
 }
 
 #[derive(Component)]
+pub struct AttractionCooldown(pub Timer);
+
+#[derive(Component)]
 pub struct Attraction {
     pub cost: i64,
     players: u32,
     capacity: u32,
     cooldown: f32,
     win_rate: f32,
-    max_bet: i64,
-    min_bet: i64,
+    max_bet: u64,
+    min_bet: u64,
 }
 
 impl Attraction {
-    pub fn new(cash: i64, max_cap: u32, cooldown: f32, win_rate: f32, max_bet: i64, min_bet: i64) -> Self {
+    pub fn new(cash: i64, max_cap: u32, cooldown: f32, win_rate: f32, max_bet: u64, min_bet: u64) -> Self {
         Attraction{cost: cash, players: 0, capacity: max_cap, cooldown, win_rate, max_bet, min_bet}
     }
     pub fn dup(&self) -> Self {
@@ -101,11 +106,26 @@ impl Attraction {
     pub fn set_capacity(&mut self, amt: u32) {
         self.capacity = amt;
     }
+    pub fn capacity(&self) -> u32 {
+        self.capacity
+    }
     pub fn set_cooldown(&mut self, time: f32) {
         self.cooldown = time;
     }
+    pub fn cooldown(&self) -> f32 {
+        self.cooldown
+    }
     pub fn set_win_rate(&mut self, rate: f32) {
         self.win_rate = rate;
+    }
+    pub fn win_rate(&self) -> f32 {
+        self.win_rate
+    }
+    pub fn min_bet(&self) -> u64 {
+        self.min_bet
+    }
+    pub fn max_bet(&self) -> u64 {
+        self.max_bet
     }
     pub fn full(&self) -> bool {
         self.players >= self.capacity
@@ -120,12 +140,20 @@ pub fn spawn_attraction(
     asset_server: &Res<AssetServer>,
 ) -> Entity {
     let position = position + ATTRACTION_OFFSET + 0.5 * ATTRACTION_SIZE;
+    let attract = blueprints.get(*attraction);
+    let cooldown = attract.cooldown();
     commands.spawn((
         Sprite {
             image: asset_server.load(attraction.get_sprite()),
             ..default()
         },
         Transform::from_xyz(position.x, position.y, -position.y),
-        blueprints.get(*attraction)
+        attract,
+        *attraction,
+        AttractionCooldown(
+            Timer::from_seconds(
+                cooldown, 
+                TimerMode::Repeating)
+        ),
     )).id()
 }

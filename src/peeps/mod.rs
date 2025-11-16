@@ -1,12 +1,14 @@
 use bevy::prelude::*;
 use bevy::app::Plugin;
 
+use crate::peeps::bet_effects::*;
 use crate::peeps::peeps::*;
 
-mod peeps;
-mod play;
-mod profile;
+pub mod peeps;
+pub mod play;
+pub mod profile;
 pub mod bell_hop;
+pub mod bet_effects;
 
 pub struct PeepsPlugin;
 
@@ -19,7 +21,11 @@ impl Plugin for PeepsPlugin {
                 test2,
                 peep_target,
                 peep_goto,
+                move_bet_text,
+                despawn_bet_text,
             ))
+            .add_observer(bet_result)
+            .add_observer(bet_effect)
         ;
     }
 }
@@ -29,7 +35,9 @@ fn test(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    spawn_peep(Vec2::new(0.0, 0.0), &mut commands, &asset_server, &peep_sheet);
+    for _ in 0..10 {
+        spawn_peep(Vec2::new(0.0, 0.0), &mut commands, &asset_server, &peep_sheet);
+    }
 }
 
 fn test2(

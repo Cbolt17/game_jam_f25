@@ -1,14 +1,17 @@
 use bevy::prelude::*;
 
 #[derive(Component)]
-#[relationship(relationship_target = PlayedBy)]
-pub struct Playing(Entity);
+#[relationship(relationship_target = Players)]
+pub struct Playing(pub Entity);
 
 #[derive(Component)]
 #[relationship_target(relationship = Playing)]
-pub struct PlayedBy(Vec<Entity>);
+pub struct Players(Vec<Entity>);
 
-impl PlayedBy {
+impl Players {
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
     pub fn get_players(&self) -> Vec<Entity> {
         self.0.clone()
     }

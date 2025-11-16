@@ -3,10 +3,12 @@ use bevy::app::Plugin;
 
 pub mod grid;
 pub mod attraction;
+pub mod play_attraction;
 
 use grid::AttractionGrid;
 use crate::grid::attraction::*;
 use crate::grid::grid::*;
+use crate::grid::play_attraction::play_game;
 
 const START_GRID_SIZE: UVec2 = UVec2::new(6, 6);
 
@@ -21,7 +23,8 @@ impl Plugin for GridPlugin {
             .add_systems(Startup, grid_start)
             .add_systems(Startup, test)
             .add_systems(Update, (
-                get_available_attractions
+                get_available_attractions,
+                play_game
             ))
             .add_observer(on_grid_resize)
         ;
@@ -34,7 +37,7 @@ fn test(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    for i in 0..6 {
+    for i in 0..1 {
         grid.add(
             Vec2::splat(i as f32 * CELL_SIZE), 
             &AttractionType::Roulette, 
@@ -42,7 +45,7 @@ fn test(
             &mut commands, 
             &asset_server
         );
-    }/*
+    }
     for i in 1..6 {
         grid.add(
             Vec2::new(i as f32 * CELL_SIZE, 0.0), 
@@ -60,5 +63,5 @@ fn test(
             &mut commands, 
             &asset_server
         );
-    }*/
+    }
 }
