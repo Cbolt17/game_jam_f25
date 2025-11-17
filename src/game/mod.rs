@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::app::Plugin;
 
 use crate::game::end::end_check;
+use crate::peeps::peeps::DespawnEntity;
 use crate::ui::title::{UiContainer, toggle_ui_visibility};
 
 pub mod end;
@@ -57,6 +58,6 @@ pub fn clear_all(
     mut commands: Commands,
 ) {
     for e in query.iter() {
-        commands.entity(e).despawn();
+        commands.entity(e).insert(DespawnEntity);
     }
 }

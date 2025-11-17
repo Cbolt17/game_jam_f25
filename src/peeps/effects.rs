@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::{grid::play_attraction::BetResult, peeps::peeps::Peep};
+use crate::{grid::play_attraction::BetResult, peeps::peeps::{DespawnEntity, Peep}};
 
 const RED: Color = Color::srgb(1.0, 0.0, 0.0);
 const GREEN: Color = Color::srgb(0.0, 1.0, 0.0);
@@ -99,7 +99,7 @@ pub fn despawn_bet_text(
             let Ok(mut entity) = commands.get_entity(entity) else {
                 continue;
             };
-            entity.despawn();
+            entity.insert(DespawnEntity);
         }
     }
 }

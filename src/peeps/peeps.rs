@@ -60,6 +60,18 @@ pub fn make_peep_dead(
     }
 }
 
+#[derive(Component)]
+pub struct DespawnEntity;
+
+pub fn despawn_set_entities(
+    query: Query<Entity, With<DespawnEntity>>,
+    mut commands: Commands
+) {
+    for entity in query.iter() {
+        commands.entity(entity).insert(DespawnEntity);
+    }
+}
+
 pub fn peep_target(
     peep_query: Query<(Entity, &NoPlayRecord), (With<Peep>, Without<GoTo>, Without<Playing>)>,
     available: Res<AvailableAttractions>,
@@ -154,7 +166,7 @@ pub fn peep_reach_door(
     if reached.location == *door {
         if let Ok(entity) = peep_query.get_mut(reached.peep) {
             let mut entity = commands.entity(entity);
-            entity.despawn();
+            entity.insert(DespawnEntity);
         }
     }
 }
@@ -202,7 +214,7 @@ pub fn server_reach_door(
             entity.remove::<Carrying>();
             entity.remove::<CarryingIntent>();
             entity.remove::<GoTo>();
-            commands.entity(carried).despawn();
+            commands.entity(carried).insert(DespawnEntity);
         }
     }
 }

@@ -47,6 +47,7 @@ impl Plugin for PeepsPlugin {
                 money_draw,
                 money_mult_tick,
             ))
+            .add_systems(PostUpdate, despawn_set_entities)
             .add_observer(bet_result)
             .add_observer(bet_effect)
             .add_observer(peep_reach_attraction)
