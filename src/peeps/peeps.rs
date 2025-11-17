@@ -68,7 +68,7 @@ pub fn despawn_set_entities(
     mut commands: Commands
 ) {
     for entity in query.iter() {
-        commands.entity(entity).insert(DespawnEntity);
+        commands.entity(entity).despawn();
     }
 }
 
